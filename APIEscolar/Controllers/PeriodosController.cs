@@ -33,6 +33,8 @@ namespace APIEscolar.Controllers
             }
             return Ok(periodos);
         }
+
+
         [HttpGet("{PeriodoId:int}", Name = "ObtenerPorId")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

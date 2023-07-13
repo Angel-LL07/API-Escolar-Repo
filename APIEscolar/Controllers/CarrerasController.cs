@@ -75,7 +75,6 @@ namespace APIEscolar.Controllers
                 ModelState.AddModelError(" ", $"Ocurrió un error al agregar la carrrera {model.NombreCarrera}");
                 return StatusCode(500, ModelState);
             }
-            //return Ok();
 
             return CreatedAtRoute("ObtenerCarreraById", new { CarreraId = nuevacarrera.Id }, nuevacarrera);
 
