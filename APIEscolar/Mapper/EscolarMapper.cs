@@ -10,6 +10,8 @@ namespace APIEscolar.Mapper
         {
                 CreateMap<PeriodoEscolar,PeriodoEscolarVM>().ReverseMap();
                 CreateMap<PeriodoEscolar, PeriodosCreacionVM>().ReverseMap();
+                CreateMap<Carreras,CarrerasVM>().ReverseMap();
+                CreateMap<Carreras,CarrerasCrearVM>().ReverseMap();
         }
     }
 }
