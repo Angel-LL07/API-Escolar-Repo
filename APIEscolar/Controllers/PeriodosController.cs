@@ -111,5 +111,31 @@ namespace APIEscolar.Controllers
 
             return NoContent();
         }
+        [HttpDelete("{PeriodoId:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult>EliminarPeriodo (int PeriodoId)
+        {
+            var periodo = await _unitOfWork.PeriodoEscolarRepository.ObtenerAsync(match: x=>x.Id==PeriodoId);
+            if (periodo == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                _unitOfWork.PeriodoEscolarRepository.EliminarAsyn(periodo);
+                _unitOfWork.SaveAsync();
+            }
+            catch
+            {
+                ModelState.AddModelError(" ", $"Ocurrio un error al borrar el periodo {periodo.Descripcion}");
+                return StatusCode(404,ModelState);
+            }
+
+            return NoContent();
+
+        }
     }
 }
