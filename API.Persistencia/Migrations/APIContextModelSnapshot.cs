@@ -113,7 +113,8 @@ namespace API.Persistencia.Migrations
 
                     b.Property<string>("Curp")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(18)
+                        .HasColumnType("character varying(18)");
 
                     b.Property<int>("Edad")
                         .HasColumnType("integer");
@@ -125,8 +126,9 @@ namespace API.Persistencia.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<char>("Sexo")
-                        .HasColumnType("character(1)");
+                    b.Property<string>("Sexo")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("NoControl");
 

@@ -8,12 +8,14 @@ namespace APIEscolar.Mapper
     {
         public EscolarMapper()
         {
-                CreateMap<PeriodoEscolar,PeriodoEscolarVM>().ReverseMap();
-                CreateMap<PeriodoEscolar, PeriodosCreacionVM>().ReverseMap();
-                CreateMap<Carreras,CarrerasVM>().ReverseMap();
-                CreateMap<Carreras,CarrerasCrearVM>().ReverseMap();
-                CreateMap<Materias,MateriasVM>().ReverseMap();
-                CreateMap<Materias, MateriasCrearVM>().ReverseMap();
+            CreateMap<PeriodoEscolar, PeriodoEscolarVM>().ReverseMap();
+            CreateMap<PeriodoEscolar, PeriodosCreacionVM>().ReverseMap();
+            CreateMap<Carreras, CarrerasVM>().ReverseMap();
+            CreateMap<Carreras, CarrerasCrearVM>().ReverseMap();
+            CreateMap<Materias, MateriasVM>().ReverseMap();
+            CreateMap<Materias, MateriasCrearVM>().ReverseMap();
+            CreateMap<Estudiantes, EstudiantesVM>().ReverseMap();
+            CreateMap<Estudiantes, EstudiantesCreacionVM>().ReverseMap();
         }
     }
 }

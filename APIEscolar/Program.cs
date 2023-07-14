@@ -2,6 +2,7 @@ using API.Persistencia;
 using APIEscolar.Mapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
