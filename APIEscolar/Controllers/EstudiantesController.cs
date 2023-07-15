@@ -38,13 +38,13 @@ namespace APIEscolar.Controllers
             return Ok(MuestraEstudiantes);
         }
 
-        [HttpGet("{EstudianteId:int}", Name = "ObtenerEstudianteById")]
+        [HttpGet("{EstudianteNoControl:int}", Name = "ObtenerEstudianteById")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> ObtenerEstudianteById(int EstudianteId)
+        public async Task<IActionResult> ObtenerEstudianteById(int EstudianteNoControl)
         {
-            var existe = await _unitOfWork.EstudiantesRepository.ObtenerPorIdAsync(EstudianteId);
+            var existe = await _unitOfWork.EstudiantesRepository.ObtenerPorIdAsync(EstudianteNoControl);
             if (existe == null)
             {
                 return NotFound();
@@ -93,7 +93,7 @@ namespace APIEscolar.Controllers
                 return StatusCode(500, ModelState);
             }
 
-            return CreatedAtRoute("ObtenerEstudianteById", new { EstudianteId = NuevoEstudiante.NoControl }, NuevoEstudiante);
+            return CreatedAtRoute("ObtenerEstudianteById", new { EstudianteNoControl = NuevoEstudiante.NoControl }, NuevoEstudiante);
 
         }
 

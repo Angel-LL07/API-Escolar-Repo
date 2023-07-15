@@ -63,7 +63,7 @@ namespace APIEscolar.Controllers
                 ModelState.AddModelError(" ", "Todos los campos son necesarios");
                 return BadRequest(ModelState);
             }
-            var Materia = await _unitOfWork.MateriasRepository.ObtenerAsync(match: x => x.NombreMateria == model.NombreMateria || x.ClaveMateria == model.ClaveMateria);
+            var Materia = await _unitOfWork.MateriasRepository.ObtenerAsync(match: x => x.NombreMateria == model.NombreMateria || x.Id == model.CarreraId);
             if (Materia != null)
             {
                 ModelState.AddModelError(" ", $"La materia {model.NombreMateria} ya existe");
@@ -78,7 +78,7 @@ namespace APIEscolar.Controllers
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError(" ", "Hubo un error");
+                //ModelState.AddModelError(" ", "Hubo un error");
                 return BadRequest(ModelState);
             }
 

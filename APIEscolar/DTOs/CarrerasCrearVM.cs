@@ -11,6 +11,6 @@ namespace APIEscolar.DTOs
         [Required(ErrorMessage = "El Nombre reducido es obligatorio")]
         public string NombreReducido { get; set; }
         [Required(ErrorMessage = "La reticula es obligatoria")]
-        public string Reticula { get; set; }
+        public int Reticula { get; set; }
     }
 }
