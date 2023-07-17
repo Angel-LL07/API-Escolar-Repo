@@ -2,6 +2,7 @@
 using API.Persistencia;
 using APIEscolar.DTOs;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,6 +20,9 @@ namespace APIEscolar.Controllers
             _unitOfWork = unitOfWork;
 
         }
+
+        [ResponseCache(CacheProfileName ="20Seg")]
+        [AllowAnonymous]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -35,6 +39,7 @@ namespace APIEscolar.Controllers
             return Ok(Materias);
         }
 
+        [ResponseCache(CacheProfileName ="20Seg")]
         [HttpGet("{MateriaId:int}", Name = "ObtenerId")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -46,14 +51,16 @@ namespace APIEscolar.Controllers
             {
                 return NotFound();
             }
-            var muestra = _mapper.Map<MateriasVM>(Existe);
-            return Ok(muestra);
+            var muestraMateria = _mapper.Map<MateriasVM>(Existe);
+            return Ok(muestraMateria);
 
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpPost("AgregarMateria")]
         [ProducesResponseType(201, Type = typeof(MateriasVM))]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AgregarMateria([FromBody] MateriasCrearVM model)
@@ -63,8 +70,8 @@ namespace APIEscolar.Controllers
                 ModelState.AddModelError(" ", "Todos los campos son necesarios");
                 return BadRequest(ModelState);
             }
-            var Materia = await _unitOfWork.MateriasRepository.ObtenerAsync(match: x => x.NombreMateria == model.NombreMateria || x.Id == model.CarreraId);
-            if (Materia != null)
+            var ExisteMateria = await _unitOfWork.MateriasRepository.ObtenerAsync(match: x => x.NombreMateria == model.NombreMateria || x.Id == model.CarreraId);
+            if (ExisteMateria != null)
             {
                 ModelState.AddModelError(" ", $"La materia {model.NombreMateria} ya existe");
                 return BadRequest(ModelState);
@@ -87,22 +94,28 @@ namespace APIEscolar.Controllers
 
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpPatch("{MateriaId:int}", Name = "ActualizarMateria")]
         [ProducesResponseType(200, Type = typeof(MateriasVM))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> ActualizarMateria(int MateriaId, [FromBody] MateriasVM model)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var materia = await _unitOfWork.MateriasRepository.ObtenerPorIdAsync(MateriaId);
             if (materia == null)
             {
                 ModelState.AddModelError(" ", "Materia no encontrado");
                 return BadRequest(ModelState);
             }
-            var actualizado = _mapper.Map<Materias>(materia);
+            var MatActualizada = _mapper.Map<Materias>(materia);
             try
             {
-                await _unitOfWork.MateriasRepository.ActualizarAsync(actualizado, actualizado.Id);
+                await _unitOfWork.MateriasRepository.ActualizarAsync(MatActualizada, MatActualizada.Id);
                 await _unitOfWork.SaveAsync();
             }
             catch
@@ -112,9 +125,12 @@ namespace APIEscolar.Controllers
             }
             return NoContent();
         }
+
+        [Authorize(Roles = "ADMIN")]
         [HttpDelete("{MateriaId:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> EliminarMateria(int MateriaId)
         {

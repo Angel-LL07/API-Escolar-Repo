@@ -14,11 +14,12 @@ namespace API.Persistencia
         public APIContext(DbContextOptions<APIContext> context):base(context) {
         }
 
-        DbSet<Estudiantes> Estudiantes { get; set; }
-        DbSet<Calificaciones> Calificaciones { get; set; }
-        DbSet<Materias> Materias { get; set; }
-        DbSet<Carreras> Carreras { get; set; }
-        DbSet<PeriodoEscolar> Periodos { get; set; }
+        public DbSet<Estudiantes> Estudiantes { get; set; }
+        public DbSet<Calificaciones> Calificaciones { get; set; }
+        public DbSet<Materias> Materias { get; set; }
+        public DbSet<Carreras> Carreras { get; set; }
+        public DbSet<PeriodoEscolar> Periodos { get; set; }
+        public DbSet<Usuario> Usuarios { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

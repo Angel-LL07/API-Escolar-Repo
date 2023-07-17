@@ -2,8 +2,11 @@
 using API.Persistencia;
 using APIEscolar.DTOs;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using System.Data;
 using Microsoft.AspNetCore.Mvc;
+
 
 namespace APIEscolar.Controllers
 {
@@ -18,6 +21,9 @@ namespace APIEscolar.Controllers
             _mapper = mapper;
             _unitOfWork = unitOfWork;
         }
+
+        [ResponseCache(CacheProfileName = "20Seg")]
+        [AllowAnonymous]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -36,7 +42,8 @@ namespace APIEscolar.Controllers
             }
             return Ok(MuestraCarreras);
         }
-
+        [ResponseCache(CacheProfileName = "20Seg")]
+        [AllowAnonymous]
         [HttpGet("{CarreraId:int}", Name = "ObtenerCarreraById")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -48,18 +55,26 @@ namespace APIEscolar.Controllers
             {
                 return NotFound();
             }
-            _mapper.Map<CarrerasVM>(existe);
-            return Ok(existe);
+           var muestraMateria = _mapper.Map<CarrerasVM>(existe);
+            return Ok(muestraMateria);
         }
 
+        
+        [Authorize(Roles ="ADMIN")]
         [HttpPost("AgregarCarrera")]
         [ProducesResponseType(201, Type = typeof(CarrerasVM))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AgregarCarrera([FromBody] CarrerasCrearVM model)
         {
-            var existe = await _unitOfWork.CarrerasRepository.ObtenerAsync(match: x => x.NombreCarrera == model.NombreCarrera || x.NombreReducido == model.NombreReducido);
-            if (existe != null)
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var existeCarrera = await _unitOfWork.CarrerasRepository.ObtenerAsync(match: x => x.NombreCarrera == model.NombreCarrera || x.NombreReducido == model.NombreReducido);
+            if (existeCarrera != null)
             {
                 ModelState.AddModelError(" ", $"La Carrera {model.NombreCarrera} ya existe");
                 return BadRequest(ModelState);
@@ -80,23 +95,29 @@ namespace APIEscolar.Controllers
 
         }
 
+        [Authorize(Roles ="ADMIN")]
         [HttpPatch("{CarreraId:int}", Name = "ActualizarCarrera")]
         [ProducesResponseType(200, Type = typeof(CarrerasVM))]
         [ProducesResponseType(StatusCodes.Status304NotModified)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> ActualizarCarrera(int CarreraId, [FromBody] CarrerasVM model)
         {
-            var existe = await _unitOfWork.CarrerasRepository.ObtenerAsync(match: x => x.Id == CarreraId);
-            if (existe is null)
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var existeCarrera = await _unitOfWork.CarrerasRepository.ObtenerAsync(match: x => x.Id == CarreraId);
+            if (existeCarrera is null)
             {
                 ModelState.AddModelError("", "Usuario no encontrado");
                 return StatusCode(404, ModelState);
             }
-            var modificado = _mapper.Map<Carreras>(model);
+            var CarreraEditada = _mapper.Map<Carreras>(model);
             try
             {
-                await _unitOfWork.CarrerasRepository.ActualizarAsync(modificado, CarreraId);
+                await _unitOfWork.CarrerasRepository.ActualizarAsync(CarreraEditada, CarreraId);
                 await _unitOfWork.SaveAsync();
             }
             catch (Exception ex)
@@ -105,8 +126,11 @@ namespace APIEscolar.Controllers
             }
             return NoContent();
         }
+
+        [Authorize(Roles ="ADMIN")]
         [HttpDelete("{CarreraId:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> EliminarCarrera(int CarreraId)

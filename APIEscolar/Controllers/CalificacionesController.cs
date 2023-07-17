@@ -2,6 +2,7 @@
 using API.Persistencia;
 using APIEscolar.DTOs;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,9 +19,11 @@ namespace APIEscolar.Controllers
             _mapper = mapper;
             _unitOfWork = unitOfWork;
         }
-
+        [ResponseCache(CacheProfileName ="20Seg")]
+        [Authorize(Roles = "ADMIN")]
         [HttpGet("{EstudianteNoControl:int}", Name = "CalificacionesByNoControl")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> CalificacionesByNoControl(int EstudianteNoControl)
@@ -31,17 +34,19 @@ namespace APIEscolar.Controllers
                 return NotFound();
             }
 
-            var muestra = new List<CalificacionesVM>();
+            var mostrarlista = new List<CalificacionesVM>();
             foreach (var item in lista) 
             {
-                muestra.Add(_mapper.Map<CalificacionesVM>(item));
+                mostrarlista.Add(_mapper.Map<CalificacionesVM>(item));
             }
 
-            return Ok(lista);
+            return Ok(mostrarlista);
         }
 
+        [Authorize(Roles ="ADMIN")]
         [HttpGet("{EstudianteNoControl:int},{PeriodoId:int}", Name = "CalificacionesByPeriodo")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> CalificacionesByPeriodo(int EstudianteNoControl,int PeriodoId)
@@ -51,8 +56,8 @@ namespace APIEscolar.Controllers
             {
                 return NotFound();
             }
-            _mapper.Map<CalificacionesVM>(existe);
-            return Ok(existe);
+            var MuestraUsuario = _mapper.Map<CalificacionesVM>(existe);
+            return Ok(MuestraUsuario);
         }
 
         [HttpPost("AgregarCalificación")]
@@ -72,8 +77,8 @@ namespace APIEscolar.Controllers
                 ModelState.AddModelError(" ", $"El calificacion para la materia {model.MateriaId} ya ha sido registrada para el periodo deseado,puede actualizar la calificación.");
                 return BadRequest(ModelState);
             }
-            var materia = await _unitOfWork.MateriasRepository.ObtenerAsync(match: x => x.Id == model.MateriaId);
-            if (materia == null)
+            var ExisteMateria = await _unitOfWork.MateriasRepository.ObtenerAsync(match: x => x.Id == model.MateriaId);
+            if (ExisteMateria == null)
             {
                 ModelState.AddModelError(" ", $"La materia ingresada no existe");
                 return BadRequest(ModelState);
@@ -94,8 +99,10 @@ namespace APIEscolar.Controllers
 
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpDelete("{NoControl:int},{PeriodoId:int},{MateriaId}",Name = "EliminarCalificacion")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> EliminarCalificacion(int NoControl,int PeriodoId,int MateriaId)
@@ -122,10 +129,11 @@ namespace APIEscolar.Controllers
         }
 
 
-
+        [Authorize(Roles = "ADMIN")]
         [HttpPatch("{NoControl:int},{PeriodoId:int},{MateriaId:int}", Name = "ActualizarCalificaciones")]
         [ProducesResponseType(200, Type = typeof(CalificacionesActualizaVM))]
         [ProducesResponseType(StatusCodes.Status304NotModified)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> ActualizarCalificaciones(int NoControl, int PeriodoId,int MateriaId, [FromBody] CalificacionesActualizaVM model)
@@ -140,17 +148,17 @@ namespace APIEscolar.Controllers
                 ModelState.AddModelError("", "Registro de calificacion no encontrada");
                 return StatusCode(404, ModelState);
             }
-            var materia = await _unitOfWork.MateriasRepository.ObtenerAsync(match: x => x.Id == model.MateriaId);
-            if (materia == null)
+            var ExisteMateria = await _unitOfWork.MateriasRepository.ObtenerAsync(match: x => x.Id == model.MateriaId);
+            if (ExisteMateria == null)
             {
                 ModelState.AddModelError(" ", $"La materia ingresada no existe");
                 return BadRequest(ModelState);
             }
-            var modificado = _mapper.Map<Calificaciones>(model);
-            modificado.id = existe.id;
+            var CalifModificada = _mapper.Map<Calificaciones>(model);
+            CalifModificada.id = existe.id;
             try
             {
-                await _unitOfWork.CalificacionesRepository.ActualizarAsync(modificado,modificado.id);
+                await _unitOfWork.CalificacionesRepository.ActualizarAsync(CalifModificada, CalifModificada.id);
                 await _unitOfWork.SaveAsync();
             }
             catch (Exception ex)
@@ -160,25 +168,10 @@ namespace APIEscolar.Controllers
             return NoContent();
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        [Authorize(Roles ="ADMIN")]
         [HttpDelete("{NoControl:int},{PeriodoId:int}", Name = "EliminarCalificacionPeriodo")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> EliminarCalificacionPeriodo(int NoControl, int PeriodoId)

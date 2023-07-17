@@ -1,4 +1,5 @@
-﻿using API.Dominio;
+﻿using API.Aplicacion.DTOsUser;
+using API.Dominio;
 using APIEscolar.DTOs;
 using AutoMapper;
 
@@ -19,6 +20,8 @@ namespace APIEscolar.Mapper
             CreateMap<Calificaciones,CalificacionesVM>().ReverseMap();
             CreateMap<Calificaciones, CalificacionesCreacionVM>().ReverseMap();
             CreateMap<Calificaciones,CalificacionesActualizaVM>().ReverseMap();
+            CreateMap<Usuario, UsuarioVM>().ReverseMap();
+            CreateMap<Usuario,UsuarioRegistroVM>().ReverseMap();
         }
     }
 }

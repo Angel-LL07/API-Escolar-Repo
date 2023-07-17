@@ -2,6 +2,7 @@
 using API.Persistencia;
 using APIEscolar.DTOs;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,6 +20,8 @@ namespace APIEscolar.Controllers
             _mapper = mapper;
         }
 
+        [ResponseCache(CacheProfileName ="20Seg")]
+        [AllowAnonymous]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -38,6 +41,8 @@ namespace APIEscolar.Controllers
             return Ok(MuestraEstudiantes);
         }
 
+        [ResponseCache(CacheProfileName = "20Seg")]
+        [AllowAnonymous]
         [HttpGet("{EstudianteNoControl:int}", Name = "ObtenerEstudianteById")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -49,13 +54,15 @@ namespace APIEscolar.Controllers
             {
                 return NotFound();
             }
-            _mapper.Map<EstudiantesVM>(existe);
-            return Ok(existe);
+          var estudiante=  _mapper.Map<EstudiantesVM>(existe);
+            return Ok(estudiante);
         }
 
+        [Authorize(Roles ="ADMIN")]
         [HttpPost("AgregarEstudiante")]
         [ProducesResponseType(201, Type = typeof(EstudiantesVM))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AgregarEstudiante([FromBody] EstudiantesCreacionVM model)
         {
@@ -97,10 +104,12 @@ namespace APIEscolar.Controllers
 
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpPatch("{NoControl:int}", Name = "ActualizarEstudiante")]
         [ProducesResponseType(200, Type = typeof(EstudiantesVM))]
         [ProducesResponseType(StatusCodes.Status304NotModified)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> ActualizarEstudiante(int NoControl, [FromBody] EstudiantesVM model)
         {
@@ -119,16 +128,16 @@ namespace APIEscolar.Controllers
                 ModelState.AddModelError(" ", "En el campo sexo Ingrese 'M' (Masculino) o 'F' (Femenino)");
                 return BadRequest(ModelState);
             }
-            var carreras = await _unitOfWork.CarrerasRepository.ObtenerAsync(match: x => x.Id == model.CarreraId);
-            if (carreras == null)
+            var ExisteCarrera = await _unitOfWork.CarrerasRepository.ObtenerAsync(match: x => x.Id == model.CarreraId);
+            if (ExisteCarrera == null)
             {
                 ModelState.AddModelError(" ", $"La carrera ingresada no existe");
                 return BadRequest(ModelState);
             }
-            var modificado = _mapper.Map<Estudiantes>(model);
+            var EstuidianteEdit = _mapper.Map<Estudiantes>(model);
             try
             {
-                await _unitOfWork.EstudiantesRepository.ActualizarAsync(modificado, NoControl);
+                await _unitOfWork.EstudiantesRepository.ActualizarAsync(EstuidianteEdit, NoControl);
                 await _unitOfWork.SaveAsync();
             }
             catch (Exception ex)
@@ -137,9 +146,12 @@ namespace APIEscolar.Controllers
             }
             return NoContent();
         }
+
+        [Authorize(Roles = "ADMIN")]
         [HttpDelete("{NoControl:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> EliminarEstudiante(int NoControl)
         {
