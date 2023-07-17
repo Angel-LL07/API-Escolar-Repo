@@ -8,9 +8,12 @@
 
   <ItemGroup>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.32.0" />
+    <PackageReference Include="XAct.Core.PCL" Version="0.0.5014" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\API.Aplicacion\API.Aplicacion.csproj" />
     <ProjectReference Include="..\API.Dominio\API.Dominio.csproj" />
   </ItemGroup>
 

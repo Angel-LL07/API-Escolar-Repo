@@ -2,8 +2,10 @@
 using API.Persistencia;
 using APIEscolar.DTOs;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using AllowAnonymousAttribute = XAct.Security.AllowAnonymousAttribute;
 
 namespace APIEscolar.Controllers
 {
@@ -18,6 +20,9 @@ namespace APIEscolar.Controllers
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
+
+        [ResponseCache(CacheProfileName ="20Seg")]
+        [AllowAnonymous]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -33,6 +38,10 @@ namespace APIEscolar.Controllers
             }
             return Ok(periodos);
         }
+
+
+        [ResponseCache(CacheProfileName ="20Seg")]
+        [AllowAnonymous]
         [HttpGet("{PeriodoId:int}", Name = "ObtenerPorId")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -44,14 +53,16 @@ namespace APIEscolar.Controllers
             {
                 return NotFound();
             }
-            var muestra = _mapper.Map<PeriodoEscolarVM>(usuario);
-            return Ok(muestra);
+            var MuestraPeriodo = _mapper.Map<PeriodoEscolarVM>(usuario);
+            return Ok(MuestraPeriodo);
 
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpPost("AgregarPeriodo")]
         [ProducesResponseType(201,Type = typeof(PeriodoEscolarVM))]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AgregarPeriodo([FromBody] PeriodosCreacionVM model)
@@ -84,12 +95,18 @@ namespace APIEscolar.Controllers
 
         }
 
+        [Authorize(Roles = "ADMIN")]
         [HttpPatch("{PeriodoId:int}",Name ="ActualizarPeriodo")]
         [ProducesResponseType(200, Type =typeof(PeriodoEscolarVM))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> ActualizarPeriodo(int PeriodoId, [FromBody] PeriodoEscolarVM model)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var periodo = await _unitOfWork.PeriodoEscolarRepository.ObtenerPorIdAsync(PeriodoId);
             if(periodo == null)
             {
@@ -107,12 +124,13 @@ namespace APIEscolar.Controllers
                 ModelState.AddModelError(" ", "Ocurrio un error");
                 return BadRequest(ModelState);
             }
-
-
             return NoContent();
         }
+
+        [Authorize(Roles = "ADMIN")]
         [HttpDelete("{PeriodoId:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult>EliminarPeriodo (int PeriodoId)

@@ -3,6 +3,7 @@ using System;
 using API.Persistencia;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace API.Persistencia.Migrations
 {
     [DbContext(typeof(APIContext))]
-    partial class APIContextModelSnapshot : ModelSnapshot
+    [Migration("20230715052708_usuario")]
+    partial class usuario
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,28 +33,31 @@ namespace API.Persistencia.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("id"));
 
-                    b.Property<decimal>("CalificacionFinal")
+                    b.Property<decimal?>("CalificacionFinal")
                         .HasColumnType("numeric");
 
                     b.Property<int>("EstudiantesNoControl")
                         .HasColumnType("integer");
 
+                    b.Property<int>("MateriaId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("PeriodoId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Unidad1")
+                    b.Property<int?>("Unidad1")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Unidad2")
+                    b.Property<int?>("Unidad2")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Unidad3")
+                    b.Property<int?>("Unidad3")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Unidad4")
+                    b.Property<int?>("Unidad4")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Unidad5")
+                    b.Property<int?>("Unidad5")
                         .HasColumnType("integer");
 
                     b.HasKey("id");
@@ -79,9 +85,8 @@ namespace API.Persistencia.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Reticula")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Reticula")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Siglas")
                         .IsRequired()
@@ -148,7 +153,7 @@ namespace API.Persistencia.Migrations
                     b.Property<int>("CarreraId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("ClaveMateria")
+                    b.Property<string>("Clave")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -195,6 +200,35 @@ namespace API.Persistencia.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Periodos");
+                });
+
+            modelBuilder.Entity("API.Dominio.Usuario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Contraseña")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("NombreUsuario")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Usuarios");
                 });
 
             modelBuilder.Entity("API.Dominio.Calificaciones", b =>
